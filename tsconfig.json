@@ -8,6 +8,16 @@
 		"checkJs": true,
 		"allowImportingTsExtensions": true,
 		"lib": ["ESNext"],
+		"allowSyntheticDefaultImports": true,
+		"declaration": true,
+		"esModuleInterop": true,
+		"lib": ["DOM", "ESNext"],
+		"noEmit": true,
+		"outDir": "./js",
+		"plugins": [
+			{ "name": "typescript-plugin-css-modules" }
+		],
+		"sourceMap": true
 	},
 	"vueCompilerOptions": {
 		"target": 2.7,
