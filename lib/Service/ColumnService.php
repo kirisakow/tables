@@ -241,9 +241,28 @@ class ColumnService extends SuperService {
 			throw new PermissionError('create column for the table id = '.$table->getId().' is not allowed.');
 		}
 
+		// Add number to title to avoid duplicate
+		$columns = $this->mapper->findAllByTable($table->getId());
+		$i = 1;
+		$newTitle = $title;
+		while (true) {
+			$found = false;
+			foreach ($columns as $column) {
+				if ($column->getTitle() === $newTitle) {
+					$found = true;
+					break;
+				}
+			}
+			if (!$found) {
+				break;
+			}
+			$newTitle = $title . ' (' . $i . ')';
+			$i++;
+		}
+
 		$time = new DateTime();
 		$item = new Column();
-		$item->setTitle($title);
+		$item->setTitle($newTitle);
 		$item->setTableId($table->getId());
 		$item->setType($type);
 		$item->setSubtype($subtype !== null ? $subtype: '');
@@ -586,7 +605,9 @@ class ColumnService extends SuperService {
 		}
 
 		foreach ($columns as $column) {
-			$this->enhanceColumn($column);
+			if ($column instanceof Column) {
+				$this->enhanceColumn($column);
+			}
 		}
 		return $columns;
 	}
