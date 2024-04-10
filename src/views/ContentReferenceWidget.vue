@@ -104,7 +104,7 @@ export default {
 
 	methods: {
 		async createRow() {
-			await this.loadStore()
+			await this.loadRows()
 
 			const { default: CreateRow } = await import('../modules/modals/CreateRow.vue')
 			spawnDialog(CreateRow, {
@@ -122,7 +122,7 @@ export default {
 			})
 		},
 		async editRow(rowId) {
-			await this.loadStore()
+			await this.loadRows()
 
 			const { default: EditRow } = await import('../modules/modals/EditRow.vue')
 			spawnDialog(EditRow, {
@@ -140,16 +140,8 @@ export default {
 		getRow(rowId) {
 			return this.element.rows.find(row => row.id === rowId)
 		},
-		async loadStore() {
-			if (this.$store) { return }
-
-			const { default: store } = await import(/* webpackChunkName: 'store' */ '../store/store.js')
-			const { default: data } = await import(/* webpackChunkName: 'store' */ '../store/data.js')
-
-			this.$store = store
-			this.$store.data = data
-
-			await this.$store.dispatch('loadRowsFromBE', { tableId: this.tableId })
+		async loadRows() {
+			await this.$store.dispatch('loadRowsFromBE', { tableId: this.element.id })
 		},
 	},
 }
