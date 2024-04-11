@@ -25,10 +25,11 @@
 		<Options
 			:config="tablePermissions"
 			:show-options="true"
-			@create-row="createRow" />
+			@create-row="createRow"
+			@set-search-string="search" />
 		<div class="nc-table">
 			<NcTable
-				:rows="element.rows"
+				:rows="filteredRows"
 				:columns="element.columns"
 				v-bind="tablePermissions"
 				@edit-row="editRow" />
@@ -72,6 +73,7 @@ export default {
 			element: {
 				...this.richObject,
 			},
+			searchExp: null,
 		}
 	},
 
@@ -92,6 +94,18 @@ export default {
 				showActions: this.canManageElement(this.element),
 			}
 		},
+		filteredRows() {
+			if (this.searchExp) {
+				return this.element.rows.filter(row => {
+					return row.data.some(column => {
+						const col = String(column.value)
+						return col.search(this.searchExp) >= 0
+					})
+				})
+			} else {
+				return this.element.rows
+			}
+		},
 	},
 
 	mounted() {
@@ -103,6 +117,11 @@ export default {
 	},
 
 	methods: {
+		search(searchString) {
+			this.searchExp = (searchString !== '')
+				? new RegExp(searchString.trim(), 'ig')
+				: null
+		},
 		async createRow() {
 			await this.loadRows()
 
