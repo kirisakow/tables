@@ -110,13 +110,13 @@ export default {
 			spawnDialog(CreateRow, {
 				showModal: true,
 				columns: this.element.columns,
-				isView: this.element.type,
+				isView: Boolean(this.element.type),
 				elementId: this.element.id,
 			}, async () => {
-				const storeRows = this.$store.data.state.rows
+				const storeRows = Object.values(this.$store.data.state.rows).at(0)
 
 				if (storeRows.length > this.element.rows.length) {
-					const createdRow = this.$store.data.state.rows.at(-1)
+					const createdRow = storeRows.at(-1)
 					this.element.rows.push(createdRow)
 				}
 			})
@@ -129,11 +129,12 @@ export default {
 				showModal: true,
 				columns: this.element.columns,
 				row: this.getRow(rowId),
-				isView: this.element.type,
+				isView: Boolean(this.element.type),
 				element: this.element,
 			}, async () => {
+				const storeRows = Object.values(this.$store.data.state.rows).at(0)
 				const localRowIndex = this.element.rows.findIndex(row => row.id === rowId)
-				const updatedRow = this.$store.data.state.rows.find(row => row.id === rowId)
+				const updatedRow = storeRows.find(row => row.id === rowId)
 				this.element.rows.splice(localRowIndex, 1, updatedRow)
 			})
 		},
