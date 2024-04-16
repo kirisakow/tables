@@ -21,7 +21,7 @@
 
 <template>
 	<div v-if="richObject" class="tables-content-widget">
-		<h2>{{ element.emoji }}&nbsp;{{ element.title }}</h2>
+		<h2>{{ richObject.emoji }}&nbsp;{{ richObject.title }}</h2>
 		<Options
 			:config="tablePermissions"
 			:show-options="true"
@@ -30,7 +30,7 @@
 		<div class="nc-table">
 			<NcTable
 				:rows="filteredRows"
-				:columns="element.columns"
+				:columns="richObject.columns"
 				v-bind="tablePermissions"
 				@edit-row="editRow" />
 		</div>
@@ -70,20 +70,18 @@ export default {
 
 	data() {
 		return {
-			element: {
-				...this.richObject,
-			},
 			searchExp: null,
+			rows: this.richObject.rows,
 		}
 	},
 
 	computed: {
 		tablePermissions() {
 			return {
-				canCreateRows: this.canCreateRowInElement(this.element),
+				canCreateRows: this.canCreateRowInElement(this.richObject),
 				canReadRows: true,
-				canEditRows: this.canUpdateData(this.element),
-				canDeleteRows: this.canDeleteData(this.element),
+				canEditRows: this.canUpdateData(this.richObject),
+				canDeleteRows: this.canDeleteData(this.richObject),
 				canCreateColumns: false,
 				canEditColumns: false,
 				canDeleteColumns: false,
@@ -91,29 +89,31 @@ export default {
 				canSelectRows: false,
 				canHideColumns: false,
 				canFilter: false,
-				showActions: this.canManageElement(this.element),
+				showActions: this.canManageElement(this.richObject),
 			}
 		},
 		filteredRows() {
 			if (this.searchExp) {
-				return this.element.rows.filter(row => {
+				return this.rows.filter(row => {
 					return row.data.some(column => {
 						const col = String(column.value)
 						return col.search(this.searchExp) >= 0
 					})
 				})
 			} else {
-				return this.element.rows
+				return this.rows
 			}
 		},
 	},
 
-	mounted() {
+	async mounted() {
 		useResizeObserver(this.$el, (entries) => {
 			const entry = entries[0]
 			const { width } = entry.contentRect
 			this.$el.style.setProperty('--widget-content-width', `${width}px`)
 		})
+
+		await this.loadRows()
 	},
 
 	methods: {
@@ -123,45 +123,41 @@ export default {
 				: null
 		},
 		async createRow() {
-			await this.loadRows()
-
 			const { default: CreateRow } = await import('../modules/modals/CreateRow.vue')
 			spawnDialog(CreateRow, {
 				showModal: true,
-				columns: this.element.columns,
-				isView: Boolean(this.element.type),
-				elementId: this.element.id,
-			}, async () => {
+				columns: this.richObject.columns,
+				isView: Boolean(this.richObject.type),
+				elementId: this.richObject.id,
+			}, () => {
 				const storeRows = Object.values(this.$store.data.state.rows).at(0)
 
-				if (storeRows.length > this.element.rows.length) {
+				if (storeRows.length > this.rows.length) {
 					const createdRow = storeRows.at(-1)
-					this.element.rows.push(createdRow)
+					this.rows.push(createdRow)
 				}
 			})
 		},
 		async editRow(rowId) {
-			await this.loadRows()
-
 			const { default: EditRow } = await import('../modules/modals/EditRow.vue')
 			spawnDialog(EditRow, {
 				showModal: true,
-				columns: this.element.columns,
+				columns: this.richObject.columns,
 				row: this.getRow(rowId),
-				isView: Boolean(this.element.type),
-				element: this.element,
-			}, async () => {
+				isView: Boolean(this.richObject.type),
+				element: this.richObject,
+			}, () => {
 				const storeRows = Object.values(this.$store.data.state.rows).at(0)
-				const localRowIndex = this.element.rows.findIndex(row => row.id === rowId)
+				const localRowIndex = this.rows.findIndex(row => row.id === rowId)
 				const updatedRow = storeRows.find(row => row.id === rowId)
-				this.element.rows.splice(localRowIndex, 1, updatedRow)
+				this.rows.splice(localRowIndex, 1, updatedRow)
 			})
 		},
 		getRow(rowId) {
-			return this.element.rows.find(row => row.id === rowId)
+			return this.rows.find(row => row.id === rowId)
 		},
 		async loadRows() {
-			await this.$store.dispatch('loadRowsFromBE', { tableId: this.element.id })
+			await this.$store.dispatch('loadRowsFromBE', { tableId: this.richObject.id })
 		},
 	},
 }
