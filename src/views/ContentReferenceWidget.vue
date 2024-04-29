@@ -107,11 +107,11 @@ export default {
 	},
 
 	async mounted() {
-		/*useResizeObserver(this.$el, (entries) => {
+		useResizeObserver(this.$el, (entries) => {
 			const entry = entries[0]
 			const { width } = entry.contentRect
 			this.$el.style.setProperty('--widget-content-width', `${width}px`)
-		})*/
+		})
 
 		await this.loadRows()
 	},
