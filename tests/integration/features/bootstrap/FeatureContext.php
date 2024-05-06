@@ -2062,4 +2062,42 @@ class FeatureContext implements Context {
 		Assert::assertTrue($exceptionCaught);
 	}
 
+	/**
+	 * @When user :user updates Context :contextAlias by setting
+	 */
+	public function userUpdatesContextBySetting(string $user, string $contextAlias, TableNode $updatedProperties) {
+		$this->setCurrentUser($user);
+		$context = $this->collectionManager->getByAlias('context', $contextAlias);
+
+		$this->sendOcsRequest(
+			'PUT',
+			sprintf('/apps/tables/api/2/contexts/%d', $context['id']),
+			$updatedProperties
+		);
+	}
+
+	/**
+	 * @When user :user updates the nodes of the Context :contextAlias to
+	 */
+	public function userUpdatesNodesOfContext(string $user, string $contextAlias, TableNode $updatedNodes) {
+		$this->setCurrentUser($user);
+		$context = $this->collectionManager->getByAlias('context', $contextAlias);
+		$nodes = [];
+
+		foreach ($updatedNodes as $row) {
+			$permissions = $this->humanReadablePermissionToInt($row['permissions']);
+			$nodes[] = [
+				'id' => $row['type'] === 'table' ? $this->tableIds[$row['alias']] : $this->viewIds[$row['alias']],
+				'type' => $row['type'] === 'table' ? 0 : 1,
+				'permissions' => $permissions,
+			];
+		}
+
+		$this->sendOcsRequest(
+			'PUT',
+			sprintf('/apps/tables/api/2/contexts/%d', $context['id']),
+			['nodes' => $nodes]
+		);
+	}
+
 }
