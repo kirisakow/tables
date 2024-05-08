@@ -1,7 +1,6 @@
 import { mount } from 'cypress/vue2'
 import store from '../../src/store/store.js'
 import data from '../../src/store/data.js'
-import Vuex from 'vuex'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 const tables = {
@@ -26,20 +25,23 @@ const tables = {
 	},
 }
 
-Cypress.Commands.add('mount', (component, options = {}) => {
-	options.extensions = options.extensions || {}
+const defaultOptions = {
+	extensions: {
+		mixins: [
+			{ methods: {t, n } },
+			{ store: { ...store, ...data } }
+		],
+		plugins: [],
+		components: {},
+	},
+}
 
-	options.extensions.mixins = options.extensions.mixins || []
-	options.extensions.mixins.push({
-		methods: { t, n },
-		store: {
-			...store,
-			...data,
-		},
-	})
-
-	options.extensions.plugins = options.extensions.plugins || []
-	options.extensions.plugins.push(Vuex)
+Cypress.Commands.add('mount', (component, options) => {
+	// Use default options and mix in the given options
+	options = {
+		...defaultOptions,
+		...options,
+	}
 
 	return mount(component, options)
 })
