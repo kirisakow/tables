@@ -1,6 +1,4 @@
 import ContentReferenceWidget from '../../src/views/ContentReferenceWidget.vue'
-import store from '../../src/store/store.js'
-import data from '../../src/store/data.js'
 
 const richObject = {
 	id: 1,
@@ -148,10 +146,6 @@ describe('ContentReferenceWidget', () => {
 		cy.mount(ContentReferenceWidget, {
 			propsData: {
 				richObject,
-			},
-			store: {
-				...store,
-				...data,
 			},
 		})
 	})

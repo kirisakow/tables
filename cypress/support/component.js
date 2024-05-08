@@ -1,18 +1,8 @@
-import Vue, { h } from 'vue'
 import { mount } from 'cypress/vue2'
-import App from '../../src/App.vue'
 import store from '../../src/store/store.js'
 import data from '../../src/store/data.js'
 import Vuex from 'vuex'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-
-Vue.mixin({
-	methods: { t, n },
-	store: {
-		...store,
-		...data,
-	},
-})
 
 const tables = {
 	0: {
@@ -37,15 +27,19 @@ const tables = {
 }
 
 Cypress.Commands.add('mount', (component, options = {}) => {
-	// options.store = options.store || { ...store, ...data }
-	cy.intercept({
-		method: 'GET',
-		url: '**/index.php/apps/tables/table',
-	}, tables)
-
 	options.extensions = options.extensions || {}
+
+	options.extensions.mixins = options.extensions.mixins || []
+	options.extensions.mixins.push({
+		methods: { t, n },
+		store: {
+			...store,
+			...data,
+		},
+	})
+
 	options.extensions.plugins = options.extensions.plugins || []
 	options.extensions.plugins.push(Vuex)
 
-	return mount(App, { propsData: { tableId: 1 } })
+	return mount(component, options)
 })
